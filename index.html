@@ -158,13 +158,6 @@
 
         setIsSubmitting(true);
 
-        // 【防呆檢查】確保老師有填寫 API Key
-        if (!apiKey || apiKey.trim() === "") {
-          alert("【系統警告】您尚未填寫 API 金鑰！\n\n請回到程式碼第 38 行，將您的金鑰填入 const apiKey = \"這裡\"; 中，並重新上傳覆蓋 GitHub 的檔案。");
-          setIsSubmitting(false);
-          return; // 直接擋下，不發送錯誤的請求
-        }
-
         const topic = topics[selectedTopic];
         
         // 1. 計算流暢度 (WPM)
@@ -195,8 +188,8 @@
         `;
 
         try {
-          // 【直接固定使用】最穩定且唯一正確的正式版模型
-          const modelName = "gemini-1.5-flash";
+          // 【改回使用】最相容且同時支援預覽環境與正式金鑰的模型
+          const modelName = "gemini-2.5-flash-preview-09-2025";
           
           const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -253,7 +246,11 @@
 
         } catch (error) {
           console.error("AI 評分發生錯誤:", error);
-          alert(`AI 評分發生錯誤，請確認 API 金鑰設定。\n詳細原因: ${error.message}`);
+          let errorMsg = error.message;
+          if (errorMsg.includes("unregistered callers") || errorMsg.includes("API_KEY_INVALID")) {
+            errorMsg = "未偵測到有效的 API 金鑰。如果您已發布至 GitHub，請確認程式碼第 38 行已正確填入您的金鑰。";
+          }
+          alert(`AI 評分發生錯誤：\n${errorMsg}`);
         }
 
         setIsSubmitting(false);
