@@ -4,258 +4,553 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Retelling Master</title>
-  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-markdown@8/react-markdown.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    * { font-family: 'Sora', 'Noto Sans TC', sans-serif; }
+
+    :root {
+      --indigo: #4F46E5;
+      --purple: #7C3AED;
+      --pink: #EC4899;
+      --emerald: #10B981;
+      --amber: #F59E0B;
+      --rose: #F43F5E;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-400: #94A3B8;
+      --slate-500: #64748B;
+      --slate-700: #334155;
+      --slate-800: #1E293B;
+    }
+
+    body { margin: 0; padding: 0; overflow: hidden; }
+
+    .app-bg {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #831843 100%);
+      min-height: 100dvh;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(20px);
+    }
+
+    /* Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar { width: 3px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    
-    .animate-fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-fade-in { animation: fadeIn 0.3s ease-in forwards; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes pulseRing {
+      0%   { transform: scale(1);   opacity: 0.6; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes scoreIn {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .animate-fade-in-up { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .animate-fade-in    { animation: fadeIn 0.3s ease both; }
+    .animate-score-in   { animation: scoreIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+    .stagger-1 { animation-delay: 0.05s; }
+    .stagger-2 { animation-delay: 0.12s; }
+    .stagger-3 { animation-delay: 0.19s; }
+    .stagger-4 { animation-delay: 0.26s; }
+    .stagger-5 { animation-delay: 0.33s; }
+
+    /* Pulse ring for recording */
+    .pulse-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(244, 63, 94, 0.4);
+      animation: pulseRing 1.2s ease-out infinite;
+    }
+    .pulse-ring-2 {
+      animation-delay: 0.4s;
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, var(--indigo), var(--purple), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Score shimmer effect */
+    .score-shimmer {
+      background: linear-gradient(90deg, #4F46E5, #7C3AED, #EC4899, #7C3AED, #4F46E5);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+    }
+
+    /* Input focus */
+    .input-field {
+      transition: all 0.2s;
+      border: 1.5px solid var(--slate-200);
+    }
+    .input-field:focus {
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      outline: none;
+    }
+
+    /* Mic button */
+    .mic-btn {
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .mic-btn:active { transform: scale(0.93); }
+
+    /* Submit button */
+    .submit-btn {
+      transition: all 0.2s;
+    }
+    .submit-btn:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(79,70,229,0.35);
+    }
+    .submit-btn:not(:disabled):active { transform: translateY(0); }
+
+    /* Select */
+    .topic-select {
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .topic-select:focus {
+      outline: none;
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Keyword pill */
+    .kw-pill {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.01em;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* Safe area padding for phones */
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+
+    /* Circular progress SVG transition */
+    .progress-circle { transition: stroke-dashoffset 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    /* Hint items */
+    .hint-item { 
+      padding: 6px 10px;
+      background: rgba(251,191,36,0.08);
+      border-radius: 8px;
+      border-left: 3px solid #F59E0B;
+      font-size: 12px;
+      font-weight: 500;
+      color: #92400E;
+      line-height: 1.5;
+    }
+
+    /* Transcript area */
+    .transcript-area {
+      min-height: 140px;
+      position: relative;
+      background: #FAFBFF;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 16px;
+      padding: 16px;
+      transition: border-color 0.2s;
+    }
+    .transcript-area.recording {
+      border-color: var(--rose);
+      box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.08);
+    }
+
+    /* Toast error */
+    @keyframes toastIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+    @keyframes toastOut {
+      from { transform: translateX(0);   opacity: 1; }
+      to   { transform: translateX(120%); opacity: 0; }
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 16px;
+      z-index: 999;
+      max-width: 280px;
+      background: #1E293B;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.4;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .toast.hiding { animation: toastOut 0.25s ease both; }
   </style>
 </head>
-<body class="bg-slate-100 m-0 p-0 overflow-hidden">
-
+<body>
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect, useRef, useCallback } = React;
 
-    // ==========================================
-    // ⚠️ 設定區 (上線前必填) ⚠️
-    // ==========================================
-    // 1. 請將您申請的 Gemini API Key 填入下方引號中 (發布至 GitHub 前必須填寫)
-    const apiKey = "AIzaSyAcAiydE76rUxrOoUCA4qu0HUSvaq-QxtI"; 
-    
-    // 2. 請將您的 Google Apps Script 網址填入下方引號中
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwbBjHh9h3eQMwjHxcUKOw-jjo1NMywZmebz-Z5EMWD_DlpAiO3QDTj2zXNudygVZ_0/exec";
+    // =====================================================
+    // ⚙️  設定區：填入您的 Google Apps Script 網址
+    // =====================================================
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwLgK1rDwydwlIGaqEZm9VecPkZRlBVPeqrqweqYGztJ4Oz0AepGaQ5rvXlPrxVPo8a/exec";
+    // =====================================================
 
-    // 單元資料與關鍵字設定
     const topics = [
       {
         id: 1, title: "1. UK vs. US English",
         hints: ["First of all, the lecture discusses...", "For example, in British English...", "Another key difference is...", "Furthermore..."],
-        keywords: ["british", "american", "vocabulary", "pavement", "sidewalk", "spelling", "organize", "recognize", "color", "humor"]
+        keywords: ["british","american","vocabulary","pavement","sidewalk","spelling","organize","recognize","color","humor"]
       },
       {
         id: 2, title: "2. History of Social Networks",
         hints: ["According to the talk...", "Initially, in 2004...", "Subsequently, after a few years...", "Most recently..."],
-        keywords: ["facebook", "2004", "twitter", "2006", "instagram", "photo", "snapchat", "messaging", "tiktok", "younger"]
+        keywords: ["facebook","2004","twitter","2006","instagram","photo","snapchat","messaging","tiktok","younger"]
       },
       {
         id: 3, title: "3. Types of Yoga",
         hints: ["The main topic is...", "To begin with, Hatha yoga...", "In contrast, Ashtanga...", "Finally..."],
-        keywords: ["hatha", "simple", "ashtanga", "challenging", "breathing", "vinyasa", "strength", "flow", "bikram", "hot"]
+        keywords: ["hatha","simple","ashtanga","challenging","breathing","vinyasa","strength","flow","bikram","hot"]
       },
       {
         id: 4, title: "4. International Students in the UK",
         hints: ["The lecture illustrates...", "A significant number of students come from...", "In terms of EU countries...", "To sum up..."],
-        keywords: ["international", "overseas", "china", "india", "7%", "italy", "france", "germany", "spain", "eu"]
+        keywords: ["international","overseas","china","india","7%","italy","france","germany","spain","eu"]
       },
       {
         id: 5, title: "5. Selling Second-hand Clothes",
         hints: ["The speaker provides tips on...", "First, it is crucial to...", "Following this...", "Finally, ensure that..."],
-        keywords: ["invest", "camera", "lighting", "description", "condition", "measurements", "material", "securely", "packaged", "dispatch"]
+        keywords: ["invest","camera","lighting","description","condition","measurements","material","securely","packaged","dispatch"]
       }
     ];
 
+    // ── Toast 元件 ─────────────────────────────────────
+    function Toast({ message, onDone }) {
+      const [hiding, setHiding] = useState(false);
+      useEffect(() => {
+        const t1 = setTimeout(() => setHiding(true), 3200);
+        const t2 = setTimeout(() => onDone(), 3500);
+        return () => { clearTimeout(t1); clearTimeout(t2); };
+      }, []);
+      return (
+        <div className={`toast ${hiding ? 'hiding' : ''}`}>
+          <span style={{marginRight:8}}>⚠️</span>{message}
+        </div>
+      );
+    }
+
+    // ── Circular Progress ──────────────────────────────
+    function CircularProgress({ score, size = "large" }) {
+      const isLarge = size === "large";
+      const r  = isLarge ? 52 : 20;
+      const sw = isLarge ? 7  : 4;
+      const cx = isLarge ? 60 : 26;
+      const sz = isLarge ? 120 : 52;
+      const circumference = r * 2 * Math.PI;
+      const offset = circumference - (Math.min(100, Math.max(0, score)) / 100) * circumference;
+      const color = score >= 80 ? '#10B981' : score >= 60 ? '#F59E0B' : '#F43F5E';
+      return (
+        <div style={{ width: sz, height: sz, position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width={sz} height={sz} style={{ transform: 'rotate(-90deg)', position: 'absolute', top: 0, left: 0 }}>
+            <circle cx={cx} cy={cx} r={r} stroke="#EEF2FF" strokeWidth={sw} fill="none"/>
+            <circle cx={cx} cy={cx} r={r} stroke={color} strokeWidth={sw} fill="none"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              className="progress-circle"
+            />
+          </svg>
+          <span style={{
+            fontSize: isLarge ? 32 : 13,
+            fontWeight: 800,
+            color: '#1E293B',
+            position: 'relative',
+            zIndex: 1,
+            lineHeight: 1
+          }}>{score}</span>
+        </div>
+      );
+    }
+
+    // ── Main App ───────────────────────────────────────
     function App() {
-      const [step, setStep] = useState(1);
+      const [step, setStep]               = useState(1);
       const [studentInfo, setStudentInfo] = useState({ className: "", studentNumber: "", studentName: "" });
       const [selectedTopic, setSelectedTopic] = useState(0);
-      const [showHints, setShowHints] = useState(false);
-      
+      const [showHints, setShowHints]     = useState(false);
       const [isRecording, setIsRecording] = useState(false);
-      const [transcript, setTranscript] = useState("");
+      const [transcript, setTranscript]   = useState("");
       const [feedbackResult, setFeedbackResult] = useState(null);
       const [isSubmitting, setIsSubmitting] = useState(false);
-      
-      const recognitionRef = useRef(null);
-      const startTimeRef = useRef(null);
-      const totalDurationRef = useRef(0);
+      const [toast, setToast]             = useState(null);
+      const [speechSupported, setSpeechSupported] = useState(true);
+      // 'unknown' | 'requesting' | 'granted' | 'denied'
+      const [micPermission, setMicPermission] = useState('unknown');
 
+      const recognitionRef    = useRef(null);
+      const startTimeRef      = useRef(null);
+      const totalDurationRef  = useRef(0);
+      const isRecordingRef    = useRef(false); // 同步版 isRecording，防止 onend 競爭
+
+      const showToast = useCallback((msg) => {
+        setToast(msg);
+      }, []);
+
+      // ── 初始化語音辨識 ────────────────────────────────
       useEffect(() => {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-          const recognition = new SpeechRecognition();
-          recognition.continuous = true;
-          recognition.interimResults = true;
-          recognition.lang = 'en-US';
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          setSpeechSupported(false);
+          return;
+        }
 
-          recognition.onresult = (event) => {
-            let finalTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-              if (event.results[i].isFinal) {
-                finalTranscript += event.results[i][0].transcript + ' ';
-              }
+        const recognition = new SpeechRecognition();
+        recognition.continuous      = true;
+        recognition.interimResults  = true;
+        recognition.lang            = 'en-US';
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event) => {
+          let final = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              final += event.results[i][0].transcript + ' ';
             }
-            if (finalTranscript) {
-              setTranscript((prev) => prev + finalTranscript);
+          }
+          if (final) setTranscript(prev => prev + final);
+        };
+
+        recognition.onerror = (event) => {
+          // 'no-speech' 是常見的非致命錯誤，不需要警告使用者
+          if (event.error === 'no-speech') return;
+          // 'aborted' 是使用者手動停止，也忽略
+          if (event.error === 'aborted') return;
+          showToast(`語音辨識錯誤：${event.error}`);
+          isRecordingRef.current = false;
+          setIsRecording(false);
+          startTimeRef.current = null;
+        };
+
+        recognition.onend = () => {
+          // ── 修正：用 ref 判斷是否仍在錄音中（iOS Safari 保護）──
+          if (isRecordingRef.current) {
+            // iOS Safari 約 15 秒後自動斷線，自動重啟
+            if (startTimeRef.current) {
+              totalDurationRef.current += (Date.now() - startTimeRef.current) / 1000;
+              startTimeRef.current = Date.now();
             }
-          };
-
-          recognition.onerror = (event) => {
-            console.error("Speech recognition error", event.error);
-            setIsRecording(false);
-          };
-
-          recognition.onend = () => {
-            setIsRecording(false);
+            try { recognition.start(); } catch(e) { /* 忽略重啟競爭錯誤 */ }
+          } else {
+            // 正常停止：結算最後一段時間
             if (startTimeRef.current) {
               totalDurationRef.current += (Date.now() - startTimeRef.current) / 1000;
               startTimeRef.current = null;
             }
-          };
+          }
+        };
 
-          recognitionRef.current = recognition;
-        } else {
-          alert("抱歉，您的瀏覽器不支援語音辨識功能，請使用 Chrome 或 Safari 瀏覽器。");
+        recognitionRef.current = recognition;
+
+        // ── 頁面載入時就檢查麥克風權限狀態 ──────────────
+        if (navigator.permissions) {
+          navigator.permissions.query({ name: 'microphone' }).then(result => {
+            if (result.state === 'granted') {
+              setMicPermission('granted');
+            } else if (result.state === 'denied') {
+              setMicPermission('denied');
+            }
+            // 'prompt' 代表尚未詢問，保持 'unknown'
+            result.onchange = () => {
+              if (result.state === 'granted') setMicPermission('granted');
+              if (result.state === 'denied')  setMicPermission('denied');
+            };
+          }).catch(() => {
+            // 部分瀏覽器不支援 permissions.query microphone，忽略即可
+          });
         }
       }, []);
 
-      const handleInfoChange = (e) => {
-        const { name, value } = e.target;
-        setStudentInfo(prev => ({ ...prev, [name]: value }));
-      };
-
-      const startLogin = () => {
-        if (!studentInfo.className || !studentInfo.studentNumber || !studentInfo.studentName) {
-          alert("請填寫完整的班級、座號與姓名！");
-          return;
+      // ── 主動請求麥克風權限（在 Step 1 按鈕觸發）──────
+      // 回傳 true = 成功取得，false = 被拒絕
+      const requestMicPermission = async () => {
+        setMicPermission('requesting');
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // 立刻釋放，只是為了取得權限
+          stream.getTracks().forEach(t => t.stop());
+          setMicPermission('granted');
+          return true;
+        } catch (err) {
+          setMicPermission('denied');
+          showToast("麥克風存取被拒絕，請在瀏覽器設定中允許後重新整理。");
+          return false;
         }
-        setStep(2);
       };
 
+      // ── 切換錄音 ──────────────────────────────────────
       const toggleRecording = () => {
         if (!recognitionRef.current) return;
 
-        if (isRecording) {
+        if (isRecordingRef.current) {
+          // 停止
+          isRecordingRef.current = false;
+          setIsRecording(false);
           recognitionRef.current.stop();
         } else {
+          // 開始（清空舊資料）
           setTranscript("");
           setFeedbackResult(null);
           totalDurationRef.current = 0;
           startTimeRef.current = Date.now();
-          recognitionRef.current.start();
+          isRecordingRef.current = true;
           setIsRecording(true);
+          try {
+            recognitionRef.current.start();
+          } catch(e) {
+            showToast("無法啟動語音辨識，請重新整理頁面再試。");
+            isRecordingRef.current = false;
+            setIsRecording(false);
+          }
         }
       };
 
-      // 呼叫 Gemini AI 進行進階評分
+      // ── 送出評分 ──────────────────────────────────────
       const evaluateTranscript = async () => {
         if (!transcript.trim()) {
-          alert("沒有偵測到您的聲音，請再試一次！");
+          showToast("沒有偵測到說話內容，請再試一次！");
+          return;
+        }
+        if (GAS_URL === "https://script.google.com/macros/s/AKfycbwLgK1rDwydwlIGaqEZm9VecPkZRlBVPeqrqweqYGztJ4Oz0AepGaQ5rvXlPrxVPo8a/exec") {
+          showToast("請先在程式碼第 18 行填入您的 GAS 網址！");
           return;
         }
 
         setIsSubmitting(true);
 
         const topic = topics[selectedTopic];
-        
-        // 1. 計算流暢度 (WPM)
         const words = transcript.trim().split(/\s+/).filter(w => w.length > 0);
-        const durationInMinutes = (totalDurationRef.current || 1) / 60;
-        const wpm = Math.round(words.length / durationInMinutes);
-        
-        // 假設高中生合理語速目標為 110 WPM
-        let fluencyScore = Math.min(100, Math.round((wpm / 110) * 100));
-        if (fluencyScore < 20) fluencyScore = 20;
+        const durationSec = totalDurationRef.current || 1;
+        const wpm = Math.round((words.length / durationSec) * 60);
+        // 以 110 wpm 為 100 分基準，最低給 20 分
+        const fluencyScore = Math.max(20, Math.min(100, Math.round((wpm / 110) * 100)));
 
-        // 2. 準備給 AI 的提示詞 (Prompt)
-        const promptText = `
-          You are an encouraging English teacher evaluating a high school student's retelling of a lecture.
-          Topic: ${topic.title}
-          Target Keywords: ${topic.keywords.join(', ')}
-          Student's Transcript: "${transcript}"
-
-          Evaluate the transcript and strictly return ONLY a JSON object with this exact structure:
-          {
-            "contentScore": <number 0-100 based on keyword coverage and topic relevance>,
-            "grammarScore": <number 0-100 based on grammatical correctness and vocabulary usage>,
-            "hitKeywords": [<list of target keywords the student successfully mentioned>],
-            "missedKeywords": [<list of target keywords the student missed>],
-            "teacherNote": "<A short, encouraging paragraph in Traditional Chinese mixed with English, max 50 words>",
-            "grammarCorrections": [<list of strings detailing specific grammar/vocabulary corrections in Traditional Chinese. If perfect, leave empty>]
-          }
-        `;
+        const payload = {
+          className:     studentInfo.className,
+          studentNumber: studentInfo.studentNumber,
+          studentName:   studentInfo.studentName,
+          topicName:     topic.title,
+          keywords:      topic.keywords.join(', '),
+          transcript:    transcript,
+          wpm:           wpm,
+          fluencyScore:  fluencyScore
+        };
 
         try {
-          // 【終極解決方案：自動環境切換】
-          // 判斷是否為老師自己填入的金鑰 (正式環境金鑰開頭為 AIza)
-          const cleanApiKey = apiKey.trim();
-          const isOfficialKey = cleanApiKey.startsWith("AIza");
-          
-          // 如果有填正式金鑰，自動使用 GitHub 正式版模型 (1.5)；若無，則使用預覽環境模型 (2.5)
-          const modelName = isOfficialKey ? "gemini-1.5-flash" : "gemini-2.5-flash-preview-09-2025";
-          
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanApiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: promptText }] }],
-              generationConfig: { responseMimeType: "application/json" }
-            })
+          const response = await fetch(GAS_URL, {
+            method:  'POST',
+            // ── 使用 text/plain 避免觸發 CORS preflight ──
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body:    JSON.stringify(payload)
           });
 
           if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error?.message || response.statusText);
-          }
-          
-          const data = await response.json();
-          let aiText = data.candidates[0].content.parts[0].text;
-          
-          // 清除 AI 可能夾帶的 Markdown 標籤
-          let cleanedText = aiText.replace(/```json/gi, '').replace(/```/gi, '').trim();
-          const aiResult = JSON.parse(cleanedText);
-          const totalScore = Math.round((aiResult.contentScore + aiResult.grammarScore + fluencyScore) / 3);
-
-          const finalFeedback = {
-            ...aiResult,
-            fluencyScore,
-            wpm,
-            totalScore
-          };
-
-          setFeedbackResult(finalFeedback);
-
-          // 3. 傳送詳細成績到 Google Sheets
-          if (GAS_URL.startsWith("http")) {
-            fetch(GAS_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-              body: JSON.stringify({
-                className: studentInfo.className,
-                studentNumber: studentInfo.studentNumber,
-                studentName: studentInfo.studentName,
-                topicName: topic.title,
-                transcript: transcript,
-                wpm: wpm,
-                contentScore: aiResult.contentScore,
-                grammarScore: aiResult.grammarScore,
-                fluencyScore: fluencyScore,
-                grammarCorrection: aiResult.grammarCorrections ? aiResult.grammarCorrections.join("\n") : "",
-                teachersNotes: aiResult.teacherNote || "",
-                totalScore: totalScore
-              })
-            }).catch(e => console.error("Sheets 寫入失敗", e));
+            throw new Error(`伺服器回應錯誤 (HTTP ${response.status})`);
           }
 
-        } catch (error) {
-          console.error("AI 評分發生錯誤:", error);
-          alert(`AI 評分發生錯誤：\n${error.message}`);
+          const result = await response.json();
+
+          if (result.error) {
+            throw new Error(result.error);
+          }
+
+          // 防禦：確保必要欄位存在
+          result.hitKeywords      = Array.isArray(result.hitKeywords)      ? result.hitKeywords      : [];
+          result.missedKeywords   = Array.isArray(result.missedKeywords)   ? result.missedKeywords   : [];
+          result.grammarCorrections = Array.isArray(result.grammarCorrections) ? result.grammarCorrections : [];
+          result.teacherNote      = result.teacherNote      || "很好的嘗試，繼續加油！";
+          result.contentScore     = result.contentScore     ?? 0;
+          result.grammarScore     = result.grammarScore     ?? 0;
+          result.fluencyScore     = result.fluencyScore     ?? fluencyScore;
+          result.totalScore       = result.totalScore       ?? Math.round((result.contentScore + result.grammarScore + fluencyScore) / 3);
+          result.wpm              = result.wpm              ?? wpm;
+
+          setFeedbackResult(result);
+          setStep(3);
+
+        } catch (err) {
+          console.error("評分錯誤：", err);
+          showToast(`送出失敗：${err.message}`);
+        } finally {
+          setIsSubmitting(false);
         }
+      };
 
-        setIsSubmitting(false);
-        setStep(3);
+      const handleInfoChange = (e) => {
+        const { name, value } = e.target;
+        setStudentInfo(prev => ({ ...prev, [name]: value }));
+      };
+
+      const startLogin = async () => {
+        if (!studentInfo.className.trim() || !studentInfo.studentNumber.toString().trim() || !studentInfo.studentName.trim()) {
+          showToast("請填寫完整的班級、座號與姓名！");
+          return;
+        }
+        // 若權限尚未確認，先取得再跳頁（用回傳值判斷，不用 stale state）
+        if (micPermission !== 'granted') {
+          const ok = await requestMicPermission();
+          if (!ok) return; // 被拒絕，不跳頁
+        }
+        setStep(2);
       };
 
       const restart = () => {
@@ -263,286 +558,431 @@
         setFeedbackResult(null);
         setShowHints(false);
         totalDurationRef.current = 0;
+        startTimeRef.current = null;
+        isRecordingRef.current = false;
+        setIsRecording(false);
         setStep(2);
       };
 
-      // 圓形進度條元件
-      const CircularProgress = ({ score, size = "large" }) => {
-        const radius = size === "large" ? 58 : 22;
-        const stroke = size === "large" ? 8 : 4;
-        const cx = size === "large" ? 64 : 26;
-        const circumference = radius * 2 * Math.PI;
-        const offset = circumference - (score / 100) * circumference;
-        const colorClass = score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-rose-400';
-
-        return (
-          <div className={`relative inline-flex items-center justify-center ${size === "large" ? 'w-32 h-32' : 'w-[52px] h-[52px]'}`}>
-            <svg className="w-full h-full transform -rotate-90">
-              <circle cx={cx} cy={cx} r={radius} stroke="currentColor" strokeWidth={stroke} fill="transparent" className="text-slate-100" />
-              <circle cx={cx} cy={cx} r={radius} stroke="currentColor" strokeWidth={stroke} fill="transparent" 
-                strokeDasharray={circumference} strokeDashoffset={offset} className={`${colorClass} transition-all duration-1000 ease-out`} />
-            </svg>
-            <div className="absolute flex flex-col items-center">
-              <span className={`${size === "large" ? 'text-4xl' : 'text-sm'} font-black text-slate-800`}>{score}</span>
-            </div>
-          </div>
-        );
-      };
-
+      // ── Render ─────────────────────────────────────────
       return (
-        <div className="font-sans flex justify-center items-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-[100dvh]">
-          <div className="w-full max-w-md bg-white flex flex-col h-[100dvh] relative overflow-hidden sm:h-[85vh] sm:max-h-[850px] sm:rounded-[2rem] sm:shadow-2xl">
-            
-            <header className="flex-none pt-8 pb-4 px-6 text-center z-10 border-b border-slate-100 shadow-sm relative bg-white">
-              <div className="inline-block bg-gradient-to-r from-indigo-500 to-purple-600 text-transparent bg-clip-text">
-                <h1 className="text-2xl font-extrabold tracking-tight">Retelling Master</h1>
-              </div>
-              <p className="text-slate-500 text-xs mt-1 font-medium">🎧 Listening & Retelling 🗣️</p>
+        <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100dvh' }} className="app-bg">
+
+          {/* Toast */}
+          {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+
+          <div className="card" style={{
+            width: '100%', maxWidth: 440,
+            display: 'flex', flexDirection: 'column',
+            height: '100dvh',
+            position: 'relative', overflow: 'hidden',
+            borderRadius: 0
+          }}
+          // Desktop rounded card
+          id="main-card">
+
+            {/* Header */}
+            <header style={{
+              flexShrink: 0,
+              padding: '28px 24px 16px',
+              borderBottom: '1px solid #F1F5F9',
+              textAlign: 'center',
+              background: 'white'
+            }}>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }} className="gradient-text">
+                Retelling Master
+              </h1>
+              <p style={{ margin: '4px 0 0', fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
+                🎧 Listening &amp; Retelling Practice 🗣️
+              </p>
             </header>
 
-            {/* === Step 1: Login === */}
+            {/* ═══ Step 1: Login ═══ */}
             {step === 1 && (
-              <main className="flex-1 overflow-y-auto px-6 py-8 custom-scrollbar bg-white">
-                <div className="space-y-6 animate-fade-in-up">
-                  <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
-                      <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                    </div>
-                    <h2 className="text-xl font-bold text-slate-800">Welcome!</h2>
-                    <p className="text-slate-500 text-sm mt-1">請輸入資料準備開始挑戰</p>
-                  </div>
-                  
-                  <div className="space-y-5">
-                    <div className="relative">
-                      <span className="absolute left-4 top-3.5 text-slate-400">🏫</span>
-                      <input type="text" name="className" value={studentInfo.className} onChange={handleInfoChange} className="w-full py-3.5 pl-12 pr-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-purple-400 outline-none text-slate-700 font-medium placeholder-slate-400 transition-all shadow-sm" placeholder="班級 (Class) e.g. 308" />
-                    </div>
-                    <div className="relative">
-                      <span className="absolute left-4 top-3.5 text-slate-400">🔢</span>
-                      <input type="number" name="studentNumber" value={studentInfo.studentNumber} onChange={handleInfoChange} className="w-full py-3.5 pl-12 pr-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-purple-400 outline-none text-slate-700 font-medium placeholder-slate-400 transition-all shadow-sm" placeholder="座號 (No.) e.g. 15" />
-                    </div>
-                    <div className="relative">
-                      <span className="absolute left-4 top-3.5 text-slate-400">👤</span>
-                      <input type="text" name="studentName" value={studentInfo.studentName} onChange={handleInfoChange} className="w-full py-3.5 pl-12 pr-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-purple-400 outline-none text-slate-700 font-medium placeholder-slate-400 transition-all shadow-sm" placeholder="姓名 (Name)" />
-                    </div>
+              <main className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '32px 24px' }}>
+                <div className="animate-fade-in-up">
+
+                  {/* Icon */}
+                  <div style={{ textAlign: 'center', marginBottom: 28 }}>
+                    <div style={{
+                      width: 72, height: 72, margin: '0 auto 16px',
+                      background: 'linear-gradient(135deg, #EEF2FF, #F5F3FF)',
+                      borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 30
+                    }}>🎙️</div>
+                    <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#1E293B' }}>Welcome!</h2>
+                    <p style={{ margin: '6px 0 0', fontSize: 13, color: '#94A3B8' }}>請填寫資料，準備開始挑戰</p>
                   </div>
 
-                  <button onClick={startLogin} className="w-full mt-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-4 rounded-2xl transition-all shadow-lg active:scale-[0.98] flex justify-center items-center gap-2">
-                    進入挑戰 🚀
+                  {/* Form */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {[
+                      { icon:'🏫', name:'className',     type:'text',   placeholder:'班級 (Class)　e.g. 308' },
+                      { icon:'🔢', name:'studentNumber', type:'number', placeholder:'座號 (No.)　e.g. 15' },
+                      { icon:'👤', name:'studentName',   type:'text',   placeholder:'姓名 (Name)' }
+                    ].map(({ icon, name, type, placeholder }, i) => (
+                      <div key={name} className={`animate-fade-in-up stagger-${i+1}`} style={{ position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 16 }}>{icon}</span>
+                        <input
+                          type={type} name={name}
+                          value={studentInfo[name]}
+                          onChange={handleInfoChange}
+                          placeholder={placeholder}
+                          className="input-field"
+                          style={{
+                            width: '100%', boxSizing: 'border-box',
+                            padding: '13px 16px 13px 42px',
+                            borderRadius: 14, fontSize: 14,
+                            fontFamily: "'Sora', 'Noto Sans TC', sans-serif",
+                            fontWeight: 500, color: '#334155',
+                            background: '#F8FAFC'
+                          }}
+                          onKeyDown={e => e.key === 'Enter' && startLogin()}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <button onClick={startLogin} className="animate-fade-in-up stagger-4 submit-btn" style={{
+                    width: '100%', marginTop: 28,
+                    padding: '15px', borderRadius: 16,
+                    border: 'none', cursor: micPermission === 'requesting' ? 'wait' : 'pointer',
+                    background: micPermission === 'denied'
+                      ? '#94A3B8'
+                      : 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+                    color: 'white', fontSize: 15, fontWeight: 700,
+                    fontFamily: "'Sora', sans-serif",
+                    letterSpacing: '0.02em',
+                    boxShadow: '0 4px 20px rgba(79,70,229,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                  }}>
+                    {micPermission === 'requesting'
+                      ? <><div className="spinner"/>請在彈出視窗允許麥克風...</>
+                      : <>進入挑戰 🚀</>
+                    }
                   </button>
+
+                  {!speechSupported && (
+                    <div style={{
+                      marginTop: 16, padding: '12px 16px',
+                      background: '#FFF7ED', borderRadius: 12,
+                      border: '1px solid #FED7AA', fontSize: 12,
+                      color: '#C2410C', fontWeight: 500
+                    }}>
+                      ⚠️ 您的瀏覽器不支援語音辨識，請改用 Chrome 或 iOS Safari。
+                    </div>
+                  )}
                 </div>
               </main>
             )}
 
-            {/* === Step 2: Practice === */}
+            {/* ═══ Step 2: Practice ═══ */}
             {step === 2 && (
-              <main className="flex-1 flex flex-col bg-slate-50 overflow-hidden animate-fade-in">
-                
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-4">
-                  
-                  <div className="bg-white border border-slate-200 p-3 rounded-2xl flex justify-between items-center shadow-sm shrink-0">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {studentInfo.studentName.charAt(0) || "U"}
+              <main className="animate-fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#F8FAFC', overflow: 'hidden' }}>
+
+                <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+                  {/* User bar */}
+                  <div style={{
+                    background: 'white', border: '1px solid #EEF2FF',
+                    borderRadius: 14, padding: '10px 14px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    flexShrink: 0
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 34, height: 34, borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'white', fontSize: 14, fontWeight: 700, flexShrink: 0
+                      }}>
+                        {studentInfo.studentName.charAt(0) || 'S'}
                       </div>
-                      <span className="text-sm font-bold text-slate-700">
-                        {studentInfo.className} - {studentInfo.studentName}
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                        {studentInfo.className}・{studentInfo.studentName}
                       </span>
                     </div>
-                    <button onClick={() => setStep(1)} className="text-xs text-indigo-500 font-medium hover:text-indigo-700">切換帳號</button>
+                    <button onClick={() => setStep(1)} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: 12, color: '#6366F1', fontWeight: 600,
+                      padding: '4px 8px', borderRadius: 8
+                    }}>切換帳號</button>
                   </div>
 
-                  <div className="space-y-1.5 shrink-0">
-                    <label className="block text-xs font-bold text-slate-500 pl-1 uppercase tracking-wider">Target Topic</label>
-                    <div className="relative">
-                      <select 
-                        value={selectedTopic} 
-                        onChange={(e) => setSelectedTopic(Number(e.target.value))}
-                        className="w-full appearance-none py-3 px-4 bg-indigo-50/50 border border-indigo-100 rounded-xl text-indigo-900 text-sm font-bold focus:ring-2 focus:ring-indigo-400 outline-none transition-all cursor-pointer shadow-sm"
+                  {/* Topic selector */}
+                  <div style={{ flexShrink: 0 }}>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#94A3B8', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em', paddingLeft: 2 }}>
+                      Target Topic
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <select
+                        value={selectedTopic}
+                        onChange={e => setSelectedTopic(Number(e.target.value))}
+                        className="topic-select"
+                        style={{
+                          width: '100%', padding: '12px 40px 12px 14px',
+                          background: 'white', borderRadius: 12,
+                          border: '1.5px solid #EEF2FF',
+                          fontSize: 13, fontWeight: 600, color: '#3730A3',
+                          fontFamily: "'Sora', 'Noto Sans TC', sans-serif"
+                        }}
                       >
-                        {topics.map((topic, index) => (
-                          <option key={topic.id} value={index}>{topic.title}</option>
+                        {topics.map((topic, i) => (
+                          <option key={topic.id} value={i}>{topic.title}</option>
                         ))}
                       </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-indigo-500">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                      </div>
+                      <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#6366F1', fontSize: 12 }}>▼</div>
                     </div>
                   </div>
 
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden shadow-sm transition-all duration-300 shrink-0">
-                    <button 
+                  {/* Hints */}
+                  <div style={{
+                    background: 'white', border: '1px solid #FEF3C7',
+                    borderRadius: 14, overflow: 'hidden', flexShrink: 0
+                  }}>
+                    <button
                       onClick={() => setShowHints(!showHints)}
-                      className="w-full py-3 px-4 flex justify-between items-center text-amber-900 font-bold hover:bg-amber-100 transition-colors"
+                      style={{
+                        width: '100%', padding: '12px 14px',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        background: 'none', border: 'none', cursor: 'pointer'
+                      }}
                     >
-                      <span className="flex items-center gap-2 text-sm">💡 語言提示 (Language Hints)</span>
-                      <span className={`transform transition-transform text-xs ${showHints ? 'rotate-180' : ''}`}>▼</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#92400E' }}>💡 語言提示 (Language Hints)</span>
+                      <span style={{ fontSize: 10, color: '#92400E', transform: showHints ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
                     </button>
-                    
                     {showHints && (
-                      <div className="p-3.5 bg-white text-xs text-slate-700 border-t border-amber-100 animate-fade-in">
-                        <p className="font-bold text-amber-600 mb-2">建議的開場與轉承詞：</p>
-                        <ul className="space-y-1.5">
-                          {topics[selectedTopic].hints.map((hint, i) => (
-                            <li key={i} className="flex items-start gap-1.5">
-                              <span className="text-amber-500 mt-0.5">•</span>
-                              <span className="font-medium">{hint}</span>
-                            </li>
-                          ))}
-                        </ul>
+                      <div className="animate-fade-in" style={{ padding: '0 14px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {topics[selectedTopic].hints.map((hint, i) => (
+                          <div key={i} className="hint-item">{hint}</div>
+                        ))}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex-1 min-h-[140px] relative bg-white rounded-xl shadow-sm border border-slate-200 p-4 shrink-0">
+                  {/* Transcript */}
+                  <div className={`transcript-area ${isRecording ? 'recording' : ''}`} style={{ flexGrow: 1, flexShrink: 0 }}>
                     {transcript ? (
-                      <p className="leading-relaxed font-medium text-slate-700 text-sm h-full">
-                        {transcript}
-                      </p>
+                      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.75, color: '#334155', fontWeight: 500 }}>{transcript}</p>
                     ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 opacity-60">
-                        <svg className="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                        <p className="font-medium text-center px-4 text-sm">
-                          {isRecording ? "Listening... (請開始說話)" : "按下下方麥克風，看著筆記開始重述"}
+                      <div style={{
+                        position: 'absolute', inset: 0,
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center',
+                        color: '#94A3B8', opacity: 0.7
+                      }}>
+                        <div style={{ fontSize: 28, marginBottom: 8 }}>🎤</div>
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 500, textAlign: 'center', padding: '0 20px' }}>
+                          {isRecording ? "Listening... 請開始說話" : "按下麥克風，開始重述"}
                         </p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="flex-none bg-white p-4 border-t border-slate-200 pb-safe z-10 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-                  <div className="flex flex-col items-center">
-                    <div className="relative">
+                {/* Bottom bar */}
+                <div style={{
+                  flexShrink: 0, background: 'white',
+                  borderTop: '1px solid #F1F5F9',
+                  padding: '16px 20px',
+                  paddingBottom: 'max(16px, env(safe-area-inset-bottom))'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+                    {/* Mic button */}
+                    <div style={{ position: 'relative', width: 64, height: 64 }}>
                       {isRecording && (
                         <>
-                          <div className="absolute inset-0 bg-rose-400 rounded-full animate-ping opacity-75"></div>
-                          <div className="absolute inset-[-8px] bg-rose-200 rounded-full animate-pulse opacity-50"></div>
+                          <div className="pulse-ring"/>
+                          <div className="pulse-ring pulse-ring-2"/>
                         </>
                       )}
-                      <button 
+                      <button
                         onClick={toggleRecording}
-                        className={`relative z-10 w-16 h-16 rounded-full flex justify-center items-center text-white shadow-lg transition-all duration-300 ${
-                          isRecording 
-                            ? 'bg-rose-500 scale-105 hover:bg-rose-600' 
-                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105'
-                        }`}
+                        disabled={!speechSupported}
+                        className="mic-btn"
+                        style={{
+                          position: 'relative', zIndex: 1,
+                          width: 64, height: 64, borderRadius: '50%', border: 'none',
+                          cursor: speechSupported ? 'pointer' : 'not-allowed',
+                          background: isRecording
+                            ? '#F43F5E'
+                            : 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+                          color: 'white', fontSize: 22,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: isRecording
+                            ? '0 4px 20px rgba(244,63,94,0.4)'
+                            : '0 4px 20px rgba(79,70,229,0.35)'
+                        }}
                       >
-                        {isRecording ? (
-                          <div className="w-5 h-5 bg-white rounded-sm"></div>
-                        ) : (
-                          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                        )}
+                        {isRecording
+                          ? <div style={{ width: 20, height: 20, background: 'white', borderRadius: 4 }}/>
+                          : <span>🎤</span>
+                        }
                       </button>
                     </div>
-                    
+
                     {!isRecording && !transcript && (
-                       <p className="text-xs mt-3 font-bold text-slate-500">Tap to Speak</p>
+                      <p style={{ margin: '10px 0 0', fontSize: 11, fontWeight: 600, color: '#94A3B8' }}>Tap to Speak</p>
+                    )}
+
+                    {transcript && !isRecording && (
+                      <button
+                        onClick={evaluateTranscript}
+                        disabled={isSubmitting}
+                        className="submit-btn"
+                        style={{
+                          width: '100%', marginTop: 14,
+                          padding: '14px', borderRadius: 14, border: 'none',
+                          cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                          background: isSubmitting
+                            ? '#94A3B8'
+                            : 'linear-gradient(135deg, #1E293B, #334155)',
+                          color: 'white', fontSize: 14, fontWeight: 700,
+                          fontFamily: "'Sora', sans-serif",
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          boxShadow: '0 4px 16px rgba(30,41,59,0.25)'
+                        }}
+                      >
+                        {isSubmitting ? (
+                          <><div className="spinner"/> AI 分析評分中...</>
+                        ) : (
+                          <>送出評分 Submit ✓</>
+                        )}
+                      </button>
                     )}
                   </div>
-
-                  {transcript && !isRecording && (
-                    <button 
-                      onClick={evaluateTranscript}
-                      disabled={isSubmitting}
-                      className="w-full mt-4 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-50 flex justify-center items-center gap-2 text-sm"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                          AI 分析評分中...
-                        </>
-                      ) : (
-                        <>送出評分 Submit <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg></>
-                      )}
-                    </button>
-                  )}
                 </div>
               </main>
             )}
 
-            {/* === Step 3: Result (Advanced AI Metrics) === */}
+            {/* ═══ Step 3: Result ═══ */}
             {step === 3 && feedbackResult && (
-              <main className="flex-1 overflow-y-auto px-5 py-6 custom-scrollbar bg-slate-50">
-                <div className="space-y-6 animate-fade-in-up">
-                  
-                  {/* Total Score */}
-                  <div className="text-center relative pt-2">
-                    {feedbackResult.totalScore >= 80 && <div className="absolute inset-0 flex justify-center items-center text-6xl animate-bounce pointer-events-none opacity-20">🏆</div>}
-                    <h2 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">Overall AI Score</h2>
-                    <CircularProgress score={feedbackResult.totalScore} size="large" />
-                  </div>
+              <main className="custom-scrollbar animate-fade-in" style={{ flex: 1, overflowY: 'auto', padding: '24px 20px 32px', background: '#F8FAFC' }}>
 
-                  {/* 3 Metrics Breakdown */}
-                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex justify-between items-center px-6">
-                    <div className="flex flex-col items-center">
-                      <CircularProgress score={feedbackResult.contentScore} size="small" />
-                      <span className="text-[10px] font-bold text-slate-500 mt-2 uppercase">Content</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <CircularProgress score={feedbackResult.grammarScore} size="small" />
-                      <span className="text-[10px] font-bold text-slate-500 mt-2 uppercase">Grammar</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <CircularProgress score={feedbackResult.fluencyScore} size="small" />
-                      <span className="text-[10px] font-bold text-slate-500 mt-2 uppercase">Fluency ({feedbackResult.wpm}wpm)</span>
-                    </div>
-                  </div>
-
-                  {/* Hit/Missed Keywords */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 shadow-sm">
-                      <h3 className="text-[10px] font-bold text-emerald-800 uppercase mb-2 flex items-center gap-1">✓ Mentioned</h3>
-                      <div className="flex flex-wrap gap-1">
-                        {feedbackResult.hitKeywords.length > 0 ? (
-                          feedbackResult.hitKeywords.map((kw, i) => <span key={i} className="px-1.5 py-0.5 bg-white text-emerald-700 text-[10px] font-bold rounded shadow-sm">{kw}</span>)
-                        ) : (<span className="text-[10px] text-emerald-600/70">None</span>)}
-                      </div>
-                    </div>
-                    <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 shadow-sm">
-                      <h3 className="text-[10px] font-bold text-rose-800 uppercase mb-2 flex items-center gap-1">⚠ Missed</h3>
-                      <div className="flex flex-wrap gap-1">
-                        {feedbackResult.missedKeywords.length > 0 ? (
-                          feedbackResult.missedKeywords.map((kw, i) => <span key={i} className="px-1.5 py-0.5 bg-white text-rose-600 text-[10px] font-bold rounded shadow-sm">{kw}</span>)
-                        ) : (<span className="text-[10px] text-rose-600/70">Perfect!</span>)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Grammar Corrections */}
-                  {feedbackResult.grammarCorrections && feedbackResult.grammarCorrections.length > 0 && (
-                    <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl shadow-sm">
-                      <h3 className="text-xs font-bold text-orange-800 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        文法建議 (Grammar Correction)
-                      </h3>
-                      <ul className="list-disc pl-5 space-y-1">
-                        {feedbackResult.grammarCorrections.map((correction, i) => (
-                          <li key={i} className="text-sm text-orange-900 font-medium">{correction}</li>
-                        ))}
-                      </ul>
-                    </div>
+                {/* Total score */}
+                <div className="animate-score-in" style={{ textAlign: 'center', marginBottom: 20 }}>
+                  <p style={{ margin: '0 0 10px', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Overall AI Score</p>
+                  <CircularProgress score={feedbackResult.totalScore} size="large"/>
+                  {feedbackResult.totalScore >= 80 && (
+                    <p style={{ margin: '8px 0 0', fontSize: 20 }}>🏆</p>
                   )}
-
-                  {/* Teacher's Note */}
-                  <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl shadow-sm">
-                    <h3 className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2">Teacher's Note</h3>
-                    <p className="text-sm text-indigo-900 font-medium leading-relaxed">{feedbackResult.teacherNote}</p>
-                  </div>
-
-                  <button onClick={restart} className="w-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-sm text-sm">
-                    再練習一次 Try Again
-                  </button>
-                  <div className="h-4"></div> {/* Bottom spacer */}
                 </div>
+
+                {/* Sub-scores */}
+                <div className="animate-fade-in-up stagger-1" style={{
+                  background: 'white', borderRadius: 16, padding: '16px 20px',
+                  border: '1px solid #EEF2FF', marginBottom: 12,
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }}>
+                  {[
+                    { label: 'Content',  score: feedbackResult.contentScore  },
+                    { label: 'Grammar',  score: feedbackResult.grammarScore  },
+                    { label: `Fluency\n${feedbackResult.wpm}wpm`, score: feedbackResult.fluencyScore }
+                  ].map(({ label, score }) => (
+                    <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                      <CircularProgress score={score} size="small"/>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'center', whiteSpace: 'pre-line' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Keywords */}
+                <div className="animate-fade-in-up stagger-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                  {[
+                    { label: '✓ Mentioned', kws: feedbackResult.hitKeywords,    bg:'#ECFDF5', border:'#A7F3D0', textColor:'#065F46' },
+                    { label: '⚠ Missed',    kws: feedbackResult.missedKeywords, bg:'#FFF1F2', border:'#FECDD3', textColor:'#9F1239' }
+                  ].map(({ label, kws, bg, border, textColor }) => (
+                    <div key={label} style={{
+                      background: bg, border: `1px solid ${border}`,
+                      borderRadius: 14, padding: '12px 12px 10px'
+                    }}>
+                      <p style={{ margin: '0 0 8px', fontSize: 9, fontWeight: 700, color: textColor, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {kws.length > 0 ? kws.map((kw, i) => (
+                          <span key={i} className="kw-pill" style={{
+                            background: 'white', color: textColor,
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.07)'
+                          }}>{kw}</span>
+                        )) : (
+                          <span style={{ fontSize: 11, color: textColor, opacity: 0.6 }}>
+                            {label.includes('Mentioned') ? 'None detected' : 'Perfect! 🎉'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Grammar corrections */}
+                {feedbackResult.grammarCorrections.length > 0 && (
+                  <div className="animate-fade-in-up stagger-3" style={{
+                    background: 'white', borderRadius: 14, padding: '14px 16px',
+                    border: '1px solid #FED7AA', marginBottom: 12
+                  }}>
+                    <p style={{ margin: '0 0 10px', fontSize: 10, fontWeight: 700, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      ✏️ Grammar Corrections
+                    </p>
+                    <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {feedbackResult.grammarCorrections.map((c, i) => (
+                        <li key={i} style={{ fontSize: 13, color: '#7C2D12', fontWeight: 500, lineHeight: 1.5 }}>{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Teacher note */}
+                <div className="animate-fade-in-up stagger-4" style={{
+                  background: 'linear-gradient(135deg, #EEF2FF, #F5F3FF)',
+                  borderRadius: 14, padding: '14px 16px', marginBottom: 16,
+                  border: '1px solid #C7D2FE'
+                }}>
+                  <p style={{ margin: '0 0 6px', fontSize: 10, fontWeight: 700, color: '#3730A3', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    🎓 Teacher's Note
+                  </p>
+                  <p style={{ margin: 0, fontSize: 13, color: '#1E1B4B', fontWeight: 500, lineHeight: 1.65 }}>
+                    {feedbackResult.teacherNote}
+                  </p>
+                </div>
+
+                {/* Try again */}
+                <button
+                  onClick={restart}
+                  className="animate-fade-in-up stagger-5"
+                  style={{
+                    width: '100%', padding: '14px', borderRadius: 14,
+                    border: '1.5px solid #E2E8F0', background: 'white',
+                    cursor: 'pointer', fontSize: 14, fontWeight: 600,
+                    color: '#334155', fontFamily: "'Sora', sans-serif",
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.target.style.background = '#F8FAFC'}
+                  onMouseLeave={e => e.target.style.background = 'white'}
+                >
+                  再練習一次 Try Again 🔄
+                </button>
+
               </main>
             )}
+
           </div>
+
+          {/* Desktop rounded card style */}
+          <style>{`
+            @media (min-width: 500px) {
+              #main-card {
+                height: auto !important;
+                max-height: 88vh !important;
+                border-radius: 28px !important;
+                box-shadow: 0 32px 80px rgba(0,0,0,0.35) !important;
+              }
+            }
+          `}</style>
         </div>
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
   </script>
 </body>
 </html>
