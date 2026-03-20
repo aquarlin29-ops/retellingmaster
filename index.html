@@ -470,8 +470,8 @@
           showToast("沒有偵測到說話內容，請再試一次！");
           return;
         }
-        if (GAS_URL === "https://script.google.com/macros/s/AKfycbwLgK1rDwydwlIGaqEZm9VecPkZRlBVPeqrqweqYGztJ4Oz0AepGaQ5rvXlPrxVPo8a/exec") {
-          showToast("請先在程式碼第 246 行填入您的 GAS 網址！");
+        if (!GAS_URL || GAS_URL.indexOf("script.google.com") === -1) {
+          showToast("GAS 網址格式錯誤，請確認第 246 行的網址正確！");
           return;
         }
 
